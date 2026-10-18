@@ -7,7 +7,9 @@ toolchain rules.
 ## Shape
 
 - Every exported name gets a doc comment directly above it, with no blank line
-  between. Unexported names are optional: add one only when the gate passes.
+  between. In an application-internal package, add one only when the gate passes
+  or a linter requires it. Unexported names are optional: add one only when the
+  gate passes.
 - The first sentence is complete and begins with the declared name:
   `// SettleOrder settles ...`, `// Package settlement ...`.
 - Name-first is syntax, not content. It does not excuse a comment that only

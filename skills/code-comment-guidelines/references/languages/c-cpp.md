@@ -44,9 +44,9 @@ say.
 - kernel-doc for exported kernel API; do not add boilerplate that repeats the
   signature. Doxygen tags only when the project runs Doxygen, and each tag must
   add a constraint.
-- Preprocessor-disabled code: `#if 0` is not a comment and is not an N5
-  exception. If the project uses it for a temporary disable, name the removal
-  condition and prefer deletion; do not leave it indefinitely.
+- Preprocessor-disabled code: `#if 0` is not a comment, so N5 does not apply.
+  Treat it as a temporary disable only: name the removal condition, prefer
+  deletion, and do not leave it indefinitely (SKILL.md, N5).
 
 ## Deprecation and TODO
 

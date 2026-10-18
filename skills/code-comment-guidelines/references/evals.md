@@ -203,7 +203,8 @@ The project's doc convention does not record deprecation versions.
 ```typescript
 /**
  * @deprecated Use `settleAndDeclareDirectMailOrder`. Removed when the batch
- * pipeline v2 ships; this version still accepts bonded-warehouse orders.
+ * pipeline v2 ships. Callers that still pass bonded-warehouse orders break at
+ * removal: the replacement rejects them.
  */
 export function settleOrder(order: Order, buyer: Buyer): Promise<boolean> { ... }
 ```

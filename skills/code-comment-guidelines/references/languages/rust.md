@@ -5,8 +5,10 @@ comment. The gate and the never-write list stay in `SKILL.md`.
 
 ## Shape
 
-- Public items get `///` docs; the crate or module gets `//!`. Keep internal
-  items out of the generated docs with `#[doc(hidden)]` or `pub(crate)`.
+- Public items on a library's public surface get `///` docs; the crate or module
+  gets `//!`. In an application crate, add a doc comment only when the gate
+  passes or `missing_docs` enforces it. Keep internal items out of the generated
+  docs with `#[doc(hidden)]` or `pub(crate)`.
 - Sections use `#` headings: `# Safety`, `# Errors`, `# Panics`, `# Examples`.
 
 ## Content

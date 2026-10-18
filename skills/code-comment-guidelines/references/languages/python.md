@@ -11,8 +11,9 @@ in `SKILL.md`.
   it.
 - Module docstring: the first statement of the module, before imports. Package
   docstring: the module docstring of `__init__.py`.
-- Public modules, classes, functions, and methods get docstrings (PEP 257);
-  private helpers only when the gate passes.
+- Public modules, classes, functions, and methods of the library or public API
+  surface get docstrings (PEP 257); application internals and private helpers
+  only when the gate passes or a configured linter enforces them (see Toolchain).
 
 ```python
 def settle(order: Order) -> bool:
@@ -31,10 +32,10 @@ def settle(order: Order) -> bool:
 - Multi-line: summary line, blank line, details. Put a blank line after a class
   docstring, and closing quotes on their own line when the docstring spans lines.
 - One-liners only for obvious cases. PEP 257 permits a one-liner that paraphrases
-  the name for an obvious function; this skill's gate is stricter, so write one
-  only when the project's doc convention requires it (a style-guide override),
-  and otherwise add a constraint or omit it. One that repeats the signature is
-  never enough.
+  the name for an obvious function; this skill's gate is stricter, so write a
+  one-liner only when the project's doc convention requires it (a style-guide
+  override). Otherwise add a constraint, or omit the docstring for a private
+  helper (see Placement). One that only repeats the signature is never enough.
 - PEP 8: comments are complete sentences; put two spaces before an inline
   comment.
 

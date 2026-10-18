@@ -183,9 +183,9 @@ console.log(`[boot] env=${env} build=${buildSha}`);
 
 ```typescript
 /**
- * @deprecated Use `settleAndDeclareDirectMailOrder`. This function still accepts
- * bonded-warehouse orders, which the new one rejects; it is removed when the
- * batch pipeline v2 ships.
+ * @deprecated Use `settleAndDeclareDirectMailOrder`. Removed when the batch
+ * pipeline v2 ships. This function still accepts bonded-warehouse orders, which
+ * the replacement rejects; callers that pass them break at removal.
  */
 export function settleOrder(order: Order, buyer: Buyer): Promise<boolean> { ... }
 ```

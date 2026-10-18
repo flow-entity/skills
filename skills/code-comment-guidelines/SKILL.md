@@ -90,8 +90,9 @@ that boundary clause.
 
 C1 is conditional. A library or package whose boundary is part of its contract
 needs a module header; a small internal module needs one only when its boundary
-or non-goals are non-obvious. Report missing C1 only for a public or library
-module.
+or non-goals are non-obvious. Report missing C1 for a public or library module,
+for an internal module whose boundary or non-goals are non-obvious, or where a
+language file or adopted style guide requires a file header.
 
 C/C++ has no doc toolchain for internal functions: when the gate calls for a
 contract comment, a short what-and-why overview at the head of the function is
@@ -152,8 +153,9 @@ Rules are numbered N1–N12 for review reports.
    explicitly a scaffold.
 5. **N5 — Commented-out code**: delete it. Version control holds the history.
    N5 covers `//` and `/* */` comments; a project-standard `#if 0` block is
-   preprocessor-disabled code, not a comment, and follows the project's
-   convention only with a removal condition (c-cpp.md).
+   preprocessor-disabled code, not a comment, so N5 does not cover it. Treat it
+   as a temporary disable with a named removal condition, prefer deletion, and do
+   not leave it indefinitely (c-cpp.md).
 6. **N6 — Boilerplate docstrings**: `@param o the order`. Required tags are
    handled by the language files; outside them they repeat the signature.
 7. **N7 — File banners** (author, date, changelog). Git records them; license
@@ -240,11 +242,19 @@ outrank every rule in this skill. A style guide can require a declaration commen
 or a file header; it does not require a comment on an obvious accessor unless it
 says so. When the ecosystem demands a comment, write it, but make each required
 content element carry a constraint instead of echoing the type. Syntax-mandated
-elements (a Go name-first line, a JSDoc block marker) are exempt from that duty.
+elements (a Go name-first line, a JSDoc block marker) are exempt from that duty;
+a required tag is not such an element, so a tag the toolchain requires must still
+add a constraint (C2).
 
 If the language is not listed, follow the project's existing doc convention and do
 not invent tags. When the project has a doc tool (KDoc, DocC, XML docs), the
 tool's required structure is an override, not a style preference.
+
+A language file's required doc elements are overrides under this rule only where
+a toolchain, a linter, or the project's adopted guide enforces them; a bare
+visibility keyword is not enforcement, so application internals stay with the
+gate. Report a missing enforced element as a missing C1 or C2 under that
+language file's rule.
 
 ## Other ecosystems
 
@@ -269,6 +279,8 @@ changes:
 
 `path:line — [blocking] missing C1 — public package has no boundary or non-goals; add a module header.`
 
+`path:line — [blocking] missing C1 — internal module has a non-obvious boundary; state the boundary and the non-goals.`
+
 Use `[blocking]` for a wrong or missing contract, a false rationale, a safety
 gap, or a machine directive that would break; `[nit]` for style and density.
 Do not report comments that pass, do not rewrite style you were not asked to
@@ -292,7 +304,8 @@ Before output, scan every comment you wrote or kept:
 8. Does it contradict the code? Fix the code or the comment; never keep both.
 9. Is it on the right surface: a caller contract in the doc comment, a maintainer
    rationale inline?
-10. Is it machine-read (build tag, pragma, region)? If so, leave it alone.
+10. Is it machine-read (build tag, pragma, region)? If so, do not rewrite or
+    reformat it; a suppression still needs its reason (C9).
 11. Is every measurement dated and conditioned, or replaced by the durable fact?
 12. Can the intended reader open the pointer? If not, state the fact inline.
 

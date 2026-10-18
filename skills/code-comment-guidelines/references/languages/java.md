@@ -29,7 +29,9 @@ them. doclint applies to both forms.
 
 ## Shape
 
-- Javadoc on public and protected types and members. Package-private and private
+- Javadoc on public and protected types and members of the library or public API
+  surface. For an application-internal class, add one only when the gate passes
+  or doclint or the adopted style guide requires it. Package-private and private
   members only when the gate passes.
 - Class comment: purpose, usage, and thread-safety assumptions. Method comment:
   the contract, not the implementation.
