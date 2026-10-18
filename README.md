@@ -29,13 +29,14 @@ npx skills add https://github.com/flow-entity/skills --all
 ## Authoring rules
 
 ```text
-skills/<skill-name>/SKILL.md           # required, frontmatter name + description
-skills/<skill-name>/references/*.md    # optional, read only when SKILL.md points to it
+skills/<skill-name>/SKILL.md              # required, frontmatter name + description
+skills/<skill-name>/references/**/*.md    # optional, read only when SKILL.md points to it
 ```
 
 - `name` is kebab-case and matches the directory name, so `--skill <name>` resolves to one directory.
 - `description` states what the skill does, when to use it, and what it does not cover. It is the only text an agent sees before deciding to load the skill, so it does the routing work.
 - `SKILL.md` stays short and decision-dense. Long examples, rulebooks, and reference tables move to `references/` with an explicit trigger for reading them.
+- Keep language-specific rules in `references/languages/<language>.md` and ecosystem-specific rules in `references/ecosystems/<topic>.md`, with an index and trigger in `SKILL.md`. The core stays language-neutral, and a reference file loads only when its language or ecosystem is involved.
 - When the catalog outgrows one level, add a category directory. The installer walks `skills/` three levels deep, so `skills/<category>/<skill-name>/SKILL.md` still installs by skill name.
 
 ## License

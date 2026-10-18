@@ -2,6 +2,8 @@
 
 A before/after pair for one TypeScript module. The before version is a realistic pile of comment anti-patterns: names that need a comment to be read, step narration, chat residue, dead code, and a scary workaround note that explains nothing. The after version keeps only the comments the code cannot carry.
 
+The example also extracts `calculateFinalSettlementCents` so several comments can disappear. That extraction is what "refactor instead of explaining" means; it is not a license to rewrite unrelated code.
+
 ## Before
 
 ```typescript
@@ -71,12 +73,10 @@ export async function handle(o: any, u: any): Promise<boolean> {
 ## After
 
 ```typescript
-/**
- * Cross-border direct-mail order settlement and customs declaration.
- *
- * Boundary: this module only handles direct-mail orders. Bonded-warehouse
- * orders are settled by the batch pipeline and must not enter this path.
- */
+// Cross-border direct-mail order settlement and customs declaration.
+//
+// Boundary: this module only handles direct-mail orders. Bonded-warehouse
+// orders are settled by the batch pipeline and must not enter this path.
 
 /**
  * EU EORI tax id: two uppercase country letters followed by 8 to 15
@@ -97,7 +97,8 @@ const SURCHARGE_EXEMPT_THRESHOLD_CENTS = 100_000;
 // because IEEE 754 multiplication drifts on amounts such as 0.1 + 0.2.
 const CROSS_BORDER_SURCHARGE_RATE = 0.12;
 
-// Customs gateway replica lag in milliseconds. See the workaround below.
+// Customs gateway replica lag budget, in milliseconds. Cause and removal
+// condition are in the workaround below.
 const CUSTOMS_REPLICA_SYNC_WAIT_MS = 300;
 
 /**
@@ -125,13 +126,13 @@ export async function settleAndDeclareDirectMailOrder(
   order.finalAmountCents = calculateFinalSettlementCents(order.amountCents, buyer);
   order.status = OrderStatus.LOCKED;
 
-  // Workaround(#1042): the customs gateway reads from a replica that lags the
-  // primary by about 200ms. Submitting right after the status write makes the
-  // gateway read a stale order and return 404. Remove this wait once gateway
-  // v3.2 ships event-based order pushes.
+  // Workaround(PROJ-1042): the customs gateway reads from a replica that lags
+  // the primary. Submitting right after the status write makes the gateway read
+  // a stale order and return 404. Remove this wait once gateway v3.2 ships
+  // event-based order pushes.
   await sleep(CUSTOMS_REPLICA_SYNC_WAIT_MS);
 
-  // TODO(#PROJ-892): replace this blocking call with a queue dispatch after the
+  // TODO(PROJ-892): replace this blocking call with a queue dispatch after the
   // Q4 cross-region queue cluster is provisioned.
   const response = await customsClient.submit(
     order.id,
@@ -160,6 +161,67 @@ function calculateFinalSettlementCents(
   return baseAmountCents + surchargeCents;
 }
 ```
+
+## Others that pass: warning, safety, suppression, deprecation, data
+
+The module above demonstrates *Contract*, *Why*, and *Pointer*. Warning and
+Safety are the gate's two remaining kinds; suppressions, deprecations, and
+exported data are location-mandated (C9, C10, C11). The file header is a plain
+comment block on purpose: a `/** */` block there would attach to the first
+declaration in TypeScript and never reach the generated file docs.
+
+```typescript
+// Warning: callers render this list directly and binary-search it by
+// `createdAt`. Returning unsorted data breaks pagination without an error.
+function listRecentOrders(merchantId: string): Order[] { ... }
+```
+
+```typescript
+// eslint-disable-next-line no-console -- boot banner must reach stdout before the logger is configured
+console.log(`[boot] env=${env} build=${buildSha}`);
+```
+
+```typescript
+/**
+ * @deprecated Use `settleAndDeclareDirectMailOrder`. This function still accepts
+ * bonded-warehouse orders, which the new one rejects; it is removed when the
+ * batch pipeline v2 ships.
+ */
+export function settleOrder(order: Order, buyer: Buyer): Promise<boolean> { ... }
+```
+
+```rust
+// Pointer: DECIMAL(18,6) is the wire format the ledger reads. Widening it
+// needs a coordinated change with the settlement service (SPEC-441).
+const LEDGER_SCALE: u32 = 6;
+
+// SAFETY: `ptr` comes from `values.as_ptr()`, `len` is `values.len()`, and
+// `values` is not mutated or dropped for the lifetime of the returned slice.
+let slice = unsafe { std::slice::from_raw_parts(ptr, len) };
+```
+
+```typescript
+class LedgerEntry {
+  // -1 means the balance has not been reconciled yet.
+  reconciledAtMs: number;
+}
+```
+
+```typescript
+test("rejects a malformed EORI", () => {
+  // Fixture: the buyer's EORI is too short, so settlement throws before any
+  // network call; no gateway stub is needed.
+  const buyer = makeBuyer({ taxId: "DE123" });
+  const order = makeOrder({ shippingType: ShippingType.DIRECT_MAIL });
+  expect(() => settleAndDeclareDirectMailOrder(order, buyer)).toThrow(
+    InvalidTaxIdError
+  );
+});
+```
+
+Each of these would be dropped by a naive "no comment by default" reading, and
+each passes the gate: none is derivable from the code, and each changes what a
+caller or maintainer may do.
 
 ## What changed
 
