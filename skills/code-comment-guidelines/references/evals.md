@@ -1,7 +1,7 @@
 # Comment decision evals
 
-A graded set for the gate, the location table, the scope boundary, and the
-review output in `SKILL.md`. Each case is a comment in context; the expected
+A graded set for the gate, the deletion gate, the location table, the scope
+boundary, and the review output in `SKILL.md`. Each case is a comment in context; the expected
 answer is one of **keep**, **delete**, **rewrite**, **leave**, or **add**.
 
 Use it two ways:
@@ -383,6 +383,31 @@ header.
 export function settle(order: Order): boolean { ... }
 ```
 
+### E39
+
+The task asks for one change: make the `entityManager` doc say which proxy it
+receives. Nothing else in the constructor is in scope.
+
+```java
+/// Creates the compiler.
+///
+/// @param entityManager entity manager, one per request
+/// @param meta          the JPA metamodel
+public JpaCompiler(EntityManager entityManager, JpaMeta meta) { ... }
+```
+
+### E40
+
+The file documents its parameters; `buyer` follows the same shape.
+
+```typescript
+/**
+ * @param order the order to settle; must be in `PENDING` state
+ * @returns true when the declaration was accepted
+ */
+export function settle(order: Order, buyer: Buyer): boolean { ... }
+```
+
 ---
 
 ## Part 2: answer key
@@ -429,16 +454,20 @@ Do not show this half when testing.
 | E36  | leave   | scope, editing 5             | The file is outside the diff; do not sweep untouched files. If it were touched, the contradiction would be a rewrite.                             |
 | E37  | rewrite | c-cpp.md, one fact one place | The header contract is duplicated in the implementation; keep the header doc and use the `.cpp` for implementation notes.                         |
 | E38  | add     | C1                           | Public package has no module header; add the boundary and non-goals.                                                                              |
+| E39  | rewrite | D1, D2                       | Extend the tag the task names. `@param meta` stays: it is outside the change, and a tag set is never reduced one member at a time.                 |
+| E40  | add     | D2, C2                       | The tag set exists but `buyer` is missing from it; add its `@param` with a constraint. Half a set is a defect, not a quieter style.               |
 
 ## Scoring
 
-A run passes when it matches at least 35 of 38 verdicts **and** misses no
+A run passes when it matches at least 37 of 40 verdicts **and** misses no
 critical case.
 
 Critical cases:
 - Noise (the skill is letting noise through): E1, E2, E13, E14.
 - Over-filter or scope (deleting or touching what must stay): E3, E10, E11,
   E16, E22, E24, E27, E36.
+- Deletion gate (removing what the edit did not cover, or shrinking a tag set):
+  E39.
 - Rewrite obligations: E6, E7, E9, E12, E23.
 - Missing comment: E15.
 - New rules: E26, E34.
@@ -458,6 +487,17 @@ Notes:
   a signal, not a gate failure.
 - E28/E29 are test coverage; E30/E31 are pointer and measurement coverage;
   E35/E37 are language override coverage.
+- E39 and E40 are the two directions of one rule: the tag set is whole or it is
+  not there. E39 fails by dropping a member, E40 by tolerating a missing one.
+- E39 doubles as the reproduction probe for the deletion gate. Run it on the same
+  model against the pre-gate skill
+  (`git show 5873159:skills/code-comment-guidelines/SKILL.md`) and against the
+  current one: `delete` is the failing baseline, `rewrite` is the fix. Two
+  identical verdicts mean the gate is insurance rather than the cause, and the
+  question moves to whether the failing run had the skill in context at all.
+  Measured 2026-10-23 on one model, one run per cell, with the tidy-up variant of
+  E39 as the reproducing case: the pre-gate skill dropped the tag, the gated
+  skill rewrote both tags and kept the set whole.
 - E23 is the only in-scope case where comment and code disagree. E36 is the
   out-of-scope control: a wrong comment in an untouched file is left alone, not
   silently fixed.

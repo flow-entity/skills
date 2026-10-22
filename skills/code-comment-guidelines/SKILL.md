@@ -13,8 +13,9 @@ fixture and why the case exists, not the mechanics of the assertion.
 
 A comment earns its place only by saying something the code cannot.
 
-The gate governs writing. It does not license deleting an existing why-comment:
-when in doubt about a comment you did not write, keep it.
+The gate governs writing. It does not license deleting a comment you did not
+write: when in doubt, keep it. Removing an existing comment is its own decision,
+gated by D1–D3 in "Deleting an existing comment".
 
 ## The gate
 
@@ -54,6 +55,33 @@ A module or file header is orientation rather than one of the five: what the uni
 is for, and the non-goals that keep code out of it. It passes question 2 through
 that boundary clause.
 
+## Deleting an existing comment
+
+The gate decides whether a comment should exist. It does not decide that one
+already there should go: a deletion needs the gate plus three checks, and failing
+any one of them leaves the comment in place.
+
+- **D1 — Earn the deletion.** A comment is in scope when the task rewrites the
+  body it sits in, changes the contract it documents, or names it for cleanup; a
+  comment on a declaration the task does not touch is out of scope, so report it
+  instead of removing it. In scope is not permission: deletion still needs the
+  fact named — which of the code, the type, the name, or another comment already
+  states it — because "boilerplate" and "restates the signature" describe a
+  comment you are about to write, not evidence against one already written. A
+  cleanup request authorises rewriting the comment, never dropping it.
+- **D2 — Keep a set whole.** A `@param`/`@return`/`@throws` block, a documented
+  field group, a bullet list, an aligned tag column: either every member goes,
+  with the surviving fact moved into the description, or none does. A set with
+  one member missing reads as an omission, not a decision. Whole also means
+  complete: where the file documents tags, every parameter, return value, and
+  thrown type carries one, so a missing member is an `add` and a removed member
+  is a defect, never a tidy-up.
+- **D3 — The requirement outranks the phrasing.** A tag the build or linter
+  enforces (doclint, `maven-javadoc-plugin`, a doc-lint rule) stays. So does a
+  comment carrying a domain rule, a workaround, a compatibility note, or a
+  rejected alternative, however clumsy its wording: rewrite the sentence, keep
+  the obligation.
+
 ## What this skill does not govern
 
 - **Generated and vendored code** (`*.gen.*`, `dist/`, `vendor/`, minified
@@ -76,7 +104,7 @@ that boundary clause.
 | Rule | Where                                  | What the comment must state                                                                                                                                                                                                                                                                        |
 |------|----------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | C1   | Module or class header                 | Core responsibility, explicit non-goals, concurrency guarantees when the code is shared.                                                                                                                                                                                                           |
-| C2   | Public or exported function            | Preconditions, boundary constraints (valid range, null behavior), side effects, and the conditions that raise. Never only restate the name or signature; a syntax-mandated name-first sentence is not a restatement by itself, but the comment as a whole must add a constraint, including every required tag. |
+| C2   | Public or exported function            | Preconditions, boundary constraints (valid range, null behavior), side effects, and the conditions that raise. Never only restate the name or signature; a syntax-mandated name-first sentence is not a restatement by itself, but the comment as a whole must add a constraint, including every required tag. For a tag that already exists, add the constraint to it rather than dropping the tag (D1). |
 | C3   | Non-obvious branch                     | The business rule or policy behind it, especially when the branch looks wrong without that context.                                                                                                                                                                                                |
 | C4   | Workaround                             | The upstream bug, legacy data, or platform limit being bypassed, the symptom it causes, and the condition under which the code can be deleted.                                                                                                                                                     |
 | C5   | Unsafe or privilege-sensitive block    | The invariant that makes it sound, who maintains it, and what would invalidate it.                                                                                                                                                                                                                 |
@@ -139,7 +167,7 @@ A test name states the behavior; a comment carries what the name cannot.
 
 ## Never write
 
-Rules are numbered N1–N12 for review reports.
+Rules are numbered N1–N12 and D1–D3 for review reports.
 
 1. **N1 — Step narration**: `// Step 1: validate input`, `// Step 2: fetch the
    order`. A two-to-four line overview of phases at the head of a function is not
@@ -157,7 +185,9 @@ Rules are numbered N1–N12 for review reports.
    as a temporary disable with a named removal condition, prefer deletion, and do
    not leave it indefinitely (c-cpp.md).
 6. **N6 — Boilerplate docstrings**: `@param o the order`. Required tags are
-   handled by the language files; outside them they repeat the signature.
+   handled by the language files; outside them they repeat the signature. N6
+   governs writing: an existing tag that only restates the signature is rewritten
+   to carry a constraint, or removed together with the rest of its set (D1, D2).
 7. **N7 — File banners** (author, date, changelog). Git records them; license
    headers are not banners.
 8. **N8 — Fabricated rationale**: never invent an issue number, a benchmark
@@ -185,6 +215,7 @@ measurement also needs the conditions that made it true.
 
 1. **Keep high-value comments.** Refactoring the syntax never licenses deleting a
    domain rule, a compatibility note, a workaround, or a performance warning.
+   Deleting any existing comment is gated by D1–D3.
 2. **Rewrite on behavior change.** Change a threshold, precondition, side effect,
    or branch, and its comment changes in the same edit. A comment that contradicts
    the code is a defect, not a leftover.
@@ -281,15 +312,24 @@ changes:
 
 `path:line — [blocking] missing C1 — internal module has a non-obvious boundary; state the boundary and the non-goals.`
 
+Report a deletion the change did not require the same way:
+
+`path:line — [blocking] D2 tag set — one @param removed while the others stay; restore it or move the fact into the description.`
+
+`path:line — [blocking] D1 out of scope — the comment is outside the edited region; revert the deletion and report it instead.`
+
 Use `[blocking]` for a wrong or missing contract, a false rationale, a safety
-gap, or a machine directive that would break; `[nit]` for style and density.
+gap, a machine directive that would break, or an unjustified deletion; `[nit]`
+for style and density.
 Do not report comments that pass, do not rewrite style you were not asked to
 touch, do not turn a passing comment into a preference, and do not scan
 untouched files.
 
 ## Self-check
 
-Before output, scan every comment you wrote or kept:
+Before output, scan every comment you wrote or kept. Items 1–3 license deleting a
+comment you are writing, not one that was already there: for an existing comment,
+apply D1–D3 before any of them.
 
 1. Can a reader derive it from the code? Delete it.
 2. Does it only restate a name, a type, or a signature? Delete it. A name-first
@@ -308,6 +348,8 @@ Before output, scan every comment you wrote or kept:
     reformat it; a suppression still needs its reason (C9).
 11. Is every measurement dated and conditioned, or replaced by the durable fact?
 12. Can the intended reader open the pointer? If not, state the fact inline.
+13. Am I removing a comment someone else wrote? D1–D3: inside the changed region,
+    the replacement fact named, the set left whole, the requirement kept.
 
 For calibration — writing a module header, converting a workaround note, judging a
 before/after diff — read [references/worked-example.md](references/worked-example.md).

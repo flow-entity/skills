@@ -35,9 +35,15 @@ them. doclint applies to both forms.
   members only when the gate passes.
 - Class comment: purpose, usage, and thread-safety assumptions. Method comment:
   the contract, not the implementation.
-- `@param`, `@return`, `@throws` when the build enforces them (doclint, a strict
-  `maven-javadoc-plugin`). Each is a complete sentence that adds a range, unit,
-  null rule, or thrown condition, never just the parameter name.
+- `@param`, `@return`, `@throws` per documented member, once the declaration
+  documents any of them: Java convention gives every parameter its own `@param`,
+  every non-void return a `@return`, and every declared exception a `@throws`.
+  Each is a complete sentence that adds a range, unit, null rule, or thrown
+  condition, never just the parameter name. A partial set is a defect in both
+  directions: add the missing member, and extend an existing one in place rather
+  than pruning it (D1, D2). The tags are unconditional only where the build
+  enforces them (doclint, a strict `maven-javadoc-plugin`); elsewhere the file's
+  own convention decides whether the set exists, not how much of it survives.
 - Javadoc lines follow the project's line length (often 80 columns); let the
   formatter wrap them. `@author` is optional in modern Javadoc; add it only when
   the project's doc policy requires it.
